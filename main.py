@@ -36,7 +36,6 @@ def calcular_estatisticas(temperaturas):
     }
 
 
-def main():
 def criar_grafico(temperaturas):
     # Gerar datas automaticamente para o gráfico
     datas = [f"Dia {i+1}" for i in range(len(temperaturas))]
@@ -96,5 +95,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
     main()
