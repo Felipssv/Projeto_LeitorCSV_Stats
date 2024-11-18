@@ -32,7 +32,7 @@ def verificar_dados(dado):
             raise DataInvalidaException(f"DIA INVÁLIDO! (O mês {dado.mes} não tem o dia {dado.dia})")
 
     #Essa if statement serve para verificar se o horário está formatado corretamente
-    if len(dado.horas) > 2 or len(dado.minutos) > 2:
+    if len(str(dado.horas)) > 2 or len(str(dado.minutos)) > 2:
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Os campos de hora e minutos só podem ter até dois caracteres!)")
     elif (int(dado.horas) < 0) or (int(dado.horas[1]) < 0) or (int(dado.minutos) < 0) or (int(dado.minutos[1]) < 0):
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Não coloque números negativos!)")
