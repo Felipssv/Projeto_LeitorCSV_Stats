@@ -34,7 +34,7 @@ def verificar_dados(dado):
     #Essa if statement serve para verificar se o horário está formatado corretamente
     if len(str(dado.horas)) > 2 or len(str(dado.minutos)) > 2:
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Os campos de hora e minutos só podem ter até dois caracteres!)")
-    elif (int(dado.horas) < 0) or (int(dado.horas[1]) < 0) or (int(dado.minutos) < 0) or (int(dado.minutos[1]) < 0):
+    elif (int(dado.horas) < 0) or (int(dado.minutos) < 0):
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Não coloque números negativos!)")
     elif int(dado.horas) > 23:
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Esse campo não pode ter um número maior que 23!)")
