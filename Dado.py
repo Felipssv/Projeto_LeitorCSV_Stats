@@ -1,3 +1,7 @@
+from functools import total_ordering
+from typing import Self
+
+@total_ordering
 class Dado:
     bissexto = False
     horas = None
@@ -24,4 +28,7 @@ class Dado:
             self.bissexto = True
         else:
             self.bissexto = False
-      
+
+    def __lt__(self, other: Self):
+        return ((self.ano, self.mes, self.dia, self.horas, self.minutos) <
+                (other.ano, other.mes, other.dia, other.horas, other.minutos))
