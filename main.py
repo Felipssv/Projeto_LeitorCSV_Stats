@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from tkinter import *
 from tkinter import filedialog, messagebox
 import requests
+from Dado import Dado
 
 # chave api OpenWeather
 API_KEY = "94daa8d6048635a335d1c8ee1ff346f2" 
@@ -13,15 +14,27 @@ API_KEY = "94daa8d6048635a335d1c8ee1ff346f2"
 def carregar_dados_csv(caminho_arquivo):
     try:
         with open(caminho_arquivo, mode='r') as file:
-            leitor = csv.reader(file)
-            temperaturas = [float(row[0]) for row in leitor if row]
-        return np.array(temperaturas)
+            leitor = csv.DictReader(file)
+            dados = []
+            for row in file:
+                row = row.strip().split(',')
+                dado = Dado(float(row[0]), int(row[1]), int(row[2]), int(row[3]), row[6], row[7])
+                dados.append(dado)
+            dados = np.sort(np.array(dados))
+        return dados
     except FileNotFoundError:
         messagebox.showerror("Erro", "Arquivo não encontrado. Verifique o caminho do arquivo e tente novamente.")
         return None
     except ValueError:
         messagebox.showerror("Erro", "Erro ao processar os dados. O arquivo deve conter apenas números válidos.")
         return None
+
+#cria uma array com as temperaturas
+def pegar_temperaturas(dados):
+    temperaturas = []
+    for i in dados:
+        temperaturas.append(i.temperatura)
+    return(np.array(temperaturas))
 
 # calcular stats
 def calcular_estatisticas(temperaturas):
@@ -40,8 +53,8 @@ def calcular_estatisticas(temperaturas):
     }
 
 # grafico
-def criar_grafico(temperaturas):
-    datas = [f"Dia {i+1}" for i in range(len(temperaturas))]
+def criar_grafico(dados, temperaturas):
+    datas = [f"{i.dia}/{i.mes}/{i.ano}\n{i.string_horas}:{i.string_minutos}" for i in dados]
     media = np.mean(temperaturas)
     mediana = np.median(temperaturas)
     moda = stats.mode(temperaturas, keepdims=True).mode[0]
@@ -83,16 +96,18 @@ def obter_previsao_tempo(cidade):
 
 
 def selecionar_arquivo():
-    global temperaturas
+    global dados
     caminho_arquivo = filedialog.askopenfilename(
         title="Selecione o arquivo CSV",
         filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
     )
     if caminho_arquivo:
-        temperaturas = carregar_dados_csv(caminho_arquivo)
-        if temperaturas is not None:
+        dados = carregar_dados_csv(caminho_arquivo)
+        if dados is not None:
+            temperaturas = pegar_temperaturas(dados)
             estatisticas = calcular_estatisticas(temperaturas)
             exibir_estatisticas(estatisticas)
+            criar_grafico(dados, temperaturas)
             btn_grafico["state"] = NORMAL
         else:
             temperaturas = None
@@ -119,7 +134,7 @@ def mostrar_previsao():
 
 # interface
 def criar_interface():
-    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade, temperaturas
+    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade, dados, temperaturas
 
     janela = Tk()
     janela.title("Análise de Temperaturas")
@@ -135,7 +150,7 @@ def criar_interface():
     lbl_estatisticas.pack(pady=10)
 
     # botao graficos
-    btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(temperaturas), state=DISABLED)
+    btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(dados, temperaturas), state=DISABLED)
     btn_grafico.pack(pady=10)
 
     # previsao do tempo
