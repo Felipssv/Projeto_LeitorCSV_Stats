@@ -9,7 +9,93 @@ from Dado import Dado
 from Funcoes_de_arquivo import escrever_no_aquivo
 
 # chave api OpenWeather
-API_KEY = "94daa8d6048635a335d1c8ee1ff346f2" 
+API_KEY = "94daa8d6048635a335d1c8ee1ff346f2"
+
+
+
+def criar_arquivo_csv():
+    def salvar_arquivo():
+        try:
+            dados = entrada_dados.get("1.0", END).strip()
+            linhas = [linha.strip() for linha in dados.split("\n") if linha.strip()]
+            temperaturas = [float(linha) for linha in linhas]  # Garante que só números sejam inseridos
+            caminho_arquivo = filedialog.asksaveasfilename(
+                title="Salvar Arquivo CSV",
+                defaultextension=".csv",
+                filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
+            )
+            if caminho_arquivo:
+                with open(caminho_arquivo, mode='w', newline='') as file:
+                    escritor = csv.writer(file)
+                    for temperatura in temperaturas:
+                        escritor.writerow([temperatura])
+                messagebox.showinfo("Sucesso", "Arquivo CSV criado com sucesso!")
+                janela_criacao.destroy()
+        except ValueError:
+            messagebox.showerror("Erro", "Insira apenas números válidos, um por linha.")
+
+    janela_criacao = Toplevel()
+    janela_criacao.title("Criar Novo Arquivo CSV")
+    janela_criacao.geometry("400x300")
+
+    Label(janela_criacao, text="Insira as temperaturas (um valor por linha):", font=("Arial", 12)).pack(pady=10)
+    entrada_dados = Text(janela_criacao, width=40, height=10, font=("Arial", 12))
+    entrada_dados.pack(pady=10)
+
+    btn_salvar = Button(janela_criacao, text="Salvar", command=salvar_arquivo)
+    btn_salvar.pack(pady=10)
+
+
+def editar_arquivo_csv():
+    def carregar_arquivo_para_edicao():
+        nonlocal caminho_arquivo
+        caminho_arquivo = filedialog.askopenfilename(
+            title="Selecione o arquivo CSV",
+            filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
+        )
+        if caminho_arquivo:
+            try:
+                with open(caminho_arquivo, mode='r') as file:
+                    leitor = csv.reader(file)
+                    dados = "\n".join([row[0] for row in leitor if row])
+                entrada_dados.delete("1.0", END)
+                entrada_dados.insert("1.0", dados)
+            except FileNotFoundError:
+                messagebox.showerror("Erro", "Arquivo não encontrado.")
+            except Exception:
+                messagebox.showerror("Erro", "Erro ao carregar o arquivo.")
+
+    def salvar_edicoes():
+        try:
+            dados = entrada_dados.get("1.0", END).strip()
+            linhas = [linha.strip() for linha in dados.split("\n") if linha.strip()]
+            temperaturas = [float(linha) for linha in linhas]  # Valida os dados como números
+            with open(caminho_arquivo, mode='w', newline='') as file:
+                escritor = csv.writer(file)
+                for temperatura in temperaturas:
+                    escritor.writerow([temperatura])
+            messagebox.showinfo("Sucesso", "Arquivo CSV editado com sucesso!")
+            janela_edicao.destroy()
+        except ValueError:
+            messagebox.showerror("Erro", "Insira apenas números válidos, um por linha.")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao salvar o arquivo: {str(e)}")
+
+    caminho_arquivo = None
+
+    janela_edicao = Toplevel()
+    janela_edicao.title("Editar Arquivo CSV")
+    janela_edicao.geometry("400x300")
+
+    btn_carregar = Button(janela_edicao, text="Carregar Arquivo CSV", command=carregar_arquivo_para_edicao)
+    btn_carregar.pack(pady=10)
+
+    entrada_dados = Text(janela_edicao, width=40, height=10, font=("Arial", 12))
+    entrada_dados.pack(pady=10)
+
+    btn_salvar = Button(janela_edicao, text="Salvar Edições", command=salvar_edicoes)
+    btn_salvar.pack(pady=10)
+
 
 #serve para criar uma arquivo csv novo
 def criar_arquivo_csv():
@@ -30,27 +116,15 @@ def criar_arquivo_csv():
 def carregar_dados_csv(caminho_arquivo):
     try:
         with open(caminho_arquivo, mode='r') as file:
-            leitor = csv.DictReader(file)
-            dados = []
-            for row in file:
-                row = row.strip().split(',')
-                dado = Dado(float(row[0]), int(row[1]), int(row[2]), int(row[3]), row[6], row[7])
-                dados.append(dado)
-            dados = np.sort(np.array(dados))
-        return dados
+            leitor = csv.reader(file)
+            temperaturas = [float(row[0]) for row in leitor if row]
+        return np.array(temperaturas)
     except FileNotFoundError:
         messagebox.showerror("Erro", "Arquivo não encontrado. Verifique o caminho do arquivo e tente novamente.")
         return None
     except ValueError:
         messagebox.showerror("Erro", "Erro ao processar os dados. O arquivo deve conter apenas números válidos.")
         return None
-
-#cria uma array com as temperaturas
-def pegar_temperaturas(dados):
-    temperaturas = []
-    for i in dados:
-        temperaturas.append(i.temperatura)
-    return(np.array(temperaturas))
 
 # calcular stats
 def calcular_estatisticas(temperaturas):
@@ -69,8 +143,8 @@ def calcular_estatisticas(temperaturas):
     }
 
 # grafico
-def criar_grafico(dados, temperaturas):
-    datas = [f"{i.dia}/{i.mes}/{i.ano}\n{i.string_horas}:{i.string_minutos}" for i in dados]
+def criar_grafico(temperaturas):
+    datas = [f"Dia {i+1}" for i in range(len(temperaturas))]
     media = np.mean(temperaturas)
     mediana = np.median(temperaturas)
     moda = stats.mode(temperaturas, keepdims=True).mode[0]
@@ -112,24 +186,17 @@ def obter_previsao_tempo(cidade):
 
 
 def selecionar_arquivo():
-    global dados
+    global temperaturas
     caminho_arquivo = filedialog.askopenfilename(
         title="Selecione o arquivo CSV",
         filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
     )
     if caminho_arquivo:
-        dados = carregar_dados_csv(caminho_arquivo)
-        if dados is not None:
-            temperaturas = pegar_temperaturas(dados)
+        temperaturas = carregar_dados_csv(caminho_arquivo)
+        if temperaturas is not None:
             estatisticas = calcular_estatisticas(temperaturas)
             exibir_estatisticas(estatisticas)
-            '''
-            Para ser honesto, eu acho melho já exibir o gráfico ao invés de pedir
-            para o usuário apertar um botão, sem falar que não consegui fazer o botão
-            funcionar, então por enquanto vamos só mostrar o gráfico assim que o
-            usuário escolher o arquivo 
-            '''
-            criar_grafico(dados,temperaturas)
+            criar_grafico(dados, temperaturas)
             btn_grafico["state"] = NORMAL
         else:
             temperaturas = None
@@ -156,35 +223,34 @@ def mostrar_previsao():
 
 # interface
 def criar_interface():
-    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade, dados, temperaturas
+    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade, temperaturas
 
     janela = Tk()
     janela.title("Análise de Temperaturas")
     janela.geometry("400x500")
 
-    # botão para criar um arquivo novo
-    btn_criar = Button(janela, text="Criar um arquivo CSV vazio", command=criar_arquivo_csv)
+    # Botão para criar novo arquivo CSV
+    btn_criar = Button(janela, text="Criar Novo Arquivo CSV", command=criar_arquivo_csv)
     btn_criar.pack(pady=10)
 
-    # botão para editar um arquivo csv
-    btn_editar = Button(janela, text="Editar um arquivo CSV", command=escrever_no_aquivo)
+    # Botão para editar arquivo CSV existente
+    btn_editar = Button(janela, text="Editar Arquivo CSV", command=editar_arquivo_csv)
     btn_editar.pack(pady=10)
 
-    # botao arquivo csv
+    # Botão para selecionar arquivo CSV
     btn_selecionar = Button(janela, text="Selecionar Arquivo CSV", command=selecionar_arquivo)
     btn_selecionar.pack(pady=10)
 
-    # label stats
+    # Label para estatísticas
     estatisticas_texto = StringVar()
     lbl_estatisticas = Label(janela, textvariable=estatisticas_texto, justify=LEFT, font=("Arial", 12))
     lbl_estatisticas.pack(pady=10)
 
     # botao graficos
-    # Eu não consegui fazer o botão funcionar
     btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(dados, temperaturas), state=DISABLED)
     btn_grafico.pack(pady=10)
 
-    # previsao do tempo
+    # Previsão do tempo
     frame_previsao = Frame(janela)
     frame_previsao.pack(pady=20)
 
@@ -195,12 +261,12 @@ def criar_interface():
     btn_previsao = Button(frame_previsao, text="Ver Previsão", command=mostrar_previsao)
     btn_previsao.grid(row=0, column=2, padx=5)
 
-    # exibição da previsao
     previsao_texto = StringVar()
     lbl_previsao = Label(janela, textvariable=previsao_texto, justify=LEFT, font=("Arial", 12), wraplength=350)
     lbl_previsao.pack(pady=10)
 
     janela.mainloop()
+
 
 if __name__ == "__main__":
     criar_interface()
