@@ -6,9 +6,25 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 import requests
 from Dado import Dado
+from Funcoes_de_arquivo import escrever_no_aquivo
 
 # chave api OpenWeather
 API_KEY = "94daa8d6048635a335d1c8ee1ff346f2" 
+
+#serve para criar uma arquivo csv novo
+def criar_arquivo_csv():
+    caminho_arquivo = filedialog.asksaveasfilename(
+        title="Salvar Arquivo CSV",
+        defaultextension=".csv",
+        filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
+    )
+    if caminho_arquivo:
+        # Cria um arquivo vazio sem cabeçalhos
+        with open(caminho_arquivo, mode='w') as file:
+            pass  # Apenas cria o arquivo sem escrever nada
+        messagebox.showinfo("Sucesso", "Arquivo CSV vazio criado com sucesso!")
+        return caminho_arquivo
+    return None
 
 # carregamento de arquivo csv
 def carregar_dados_csv(caminho_arquivo):
@@ -107,7 +123,13 @@ def selecionar_arquivo():
             temperaturas = pegar_temperaturas(dados)
             estatisticas = calcular_estatisticas(temperaturas)
             exibir_estatisticas(estatisticas)
-            criar_grafico(dados, temperaturas)
+            '''
+            Para ser honesto, eu acho melho já exibir o gráfico ao invés de pedir
+            para o usuário apertar um botão, sem falar que não consegui fazer o botão
+            funcionar, então por enquanto vamos só mostrar o gráfico assim que o
+            usuário escolher o arquivo 
+            '''
+            criar_grafico(dados,temperaturas)
             btn_grafico["state"] = NORMAL
         else:
             temperaturas = None
@@ -140,6 +162,14 @@ def criar_interface():
     janela.title("Análise de Temperaturas")
     janela.geometry("400x500")
 
+    # botão para criar um arquivo novo
+    btn_criar = Button(janela, text="Criar um arquivo CSV vazio", command=criar_arquivo_csv)
+    btn_criar.pack(pady=10)
+
+    # botão para editar um arquivo csv
+    btn_editar = Button(janela, text="Editar um arquivo CSV", command=escrever_no_aquivo)
+    btn_editar.pack(pady=10)
+
     # botao arquivo csv
     btn_selecionar = Button(janela, text="Selecionar Arquivo CSV", command=selecionar_arquivo)
     btn_selecionar.pack(pady=10)
@@ -150,6 +180,7 @@ def criar_interface():
     lbl_estatisticas.pack(pady=10)
 
     # botao graficos
+    # Eu não consegui fazer o botão funcionar
     btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(dados, temperaturas), state=DISABLED)
     btn_grafico.pack(pady=10)
 
