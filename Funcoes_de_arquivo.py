@@ -5,51 +5,56 @@ from tkinter import filedialog, messagebox, Toplevel
 from tkinter import *
 
 
-
 class DataInvalidaException(Exception):
     pass
 
+
 class HorarioInvalidoException(Exception):
     pass
+
 
 def criar_arquivo(nome):
     arquivo = open(f"{nome}.csv", "w")
     arquivo.close()
 
+
 def verificar_dados(dado):
-    #As if statements até a linha 33 servem para ver se a data está formatada corretamente
+    # As if statements até a linha 33 servem para ver se a data está formatada corretamente
     if int(dado.mes) < 0 or int(dado.mes) > 12:
         raise DataInvalidaException("MÊS INVÁLIDO! (Deve estar entre 1 e 12)")
     elif int(dado.dia) < 1:
         raise DataInvalidaException("DIA INVÁLIDO! (Não pode ser menor que 1)")
-    
+
     if int(dado.mes) == 2:
         if int(dado.dia) > 29:
             raise DataInvalidaException(f"DIA INVÁLIDO! (O mês {dado.mes} não tem o dia {dado.dia})")
         elif not dado.bissexto and int(dado.dia) == 29:
-            raise DataInvalidaException(f"DIA INVÁLIDO! (O ano {dado.ano} não é bissexto, portanto o mês de fevereiro não tem o dia 29)")
-        
-    if (int(dado.mes) <= 6 and int(dado.mes) % 2 == 0) or (int(dado.mes)>= 7 and int(dado.mes) % 2 != 0):
+            raise DataInvalidaException(
+                f"DIA INVÁLIDO! (O ano {dado.ano} não é bissexto, portanto o mês de fevereiro não tem o dia 29)")
+
+    if (int(dado.mes) <= 6 and int(dado.mes) % 2 == 0) or (int(dado.mes) >= 7 and int(dado.mes) % 2 != 0):
         if int(dado.dia) == 31:
             raise DataInvalidaException(f"DIA INVÁLIDO! (O mês {dado.mes} não tem o dia {dado.dia})")
 
-    #Essa if statement serve para verificar se o horário está formatado corretamente
+    # Essa if statement serve para verificar se o horário está formatado corretamente
     if len(dado.string_horas) > 2 or len(dado.string_minutos) > 2:
-        raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Os campos de hora e minutos só podem ter até dois caracteres!)")
+        raise HorarioInvalidoException(
+            "HORÁRIO INVÁLIDO! (Os campos de hora e minutos só podem ter até dois caracteres!)")
     elif (dado.horas < 0) or (int(dado.minutos) < 0):
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Não coloque números negativos!)")
     elif int(dado.horas) > 23:
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Esse campo não pode ter um número maior que 23!)")
     elif int(dado.minutos) > 59:
         raise HorarioInvalidoException("HORÁRIO INVÁLIDO! (Esse campo não pode ter um número maior que 59!)")
-            
-def escrever_no_aquivo(): 
+
+
+def escrever_no_aquivo():
     nome_do_arquivo = filedialog.askopenfilename(
         title="Selecione o arquivo",
         filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*")))
     if nome_do_arquivo:
         try:
-            #Cria a janela
+            # Cria a janela
             janela_adcionar = Toplevel()
             janela_adcionar.title("Adcionar dados ao CSV")
             janela_adcionar.geometry("300x300")
@@ -92,20 +97,20 @@ def escrever_no_aquivo():
                     ano = int(entrada_ano.get())
                     horas = str(entrada_horas.get())
                     minutos = str(entrada_minutos.get())
-                    
-                    dado = Dado(temperatura,dia,mes,ano,horas,minutos)
+
+                    dado = Dado(temperatura, dia, mes, ano, horas, minutos)
                     verificar_dados(dado)
-                    with open(nome_do_arquivo, mode = "a", newline = '') as arquivo_csv:
+                    with open(nome_do_arquivo, mode="a", newline='') as arquivo_csv:
                         escritor = csv.writer(arquivo_csv, delimiter=',')
-                        escritor.writerow([dado.temperatura, 
-                                            dado.dia, 
-                                            dado.mes, 
-                                            dado.ano, 
-                                            dado.horas, 
-                                            dado.minutos,
-                                            dado.string_horas,
-                                            dado.string_minutos])
-                    messagebox.showinfo("Sucesso!","Dados salvos com sucesso!")
+                        escritor.writerow([dado.temperatura,
+                                           dado.dia,
+                                           dado.mes,
+                                           dado.ano,
+                                           dado.horas,
+                                           dado.minutos,
+                                           dado.string_horas,
+                                           dado.string_minutos])
+                    messagebox.showinfo("Sucesso!", "Dados salvos com sucesso!")
                     janela_adcionar.destroy()
                 except FileNotFoundError:
                     messagebox.showerror("Erro", "Arquivo não encontrado")
@@ -113,6 +118,7 @@ def escrever_no_aquivo():
                     messagebox.showerror("Erro", "Horário inválido!")
                 except DataInvalidaException:
                     messagebox.showerror("Erro", "Data inválida!")
+
             btn_salvar = Button(janela_adcionar, text="Salvar dados", command=salvar_dados)
             btn_salvar.pack(pady=10)
         except FileNotFoundError:
