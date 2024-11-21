@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from tkinter import *
 from tkinter import filedialog, messagebox
 import requests
-
+from Dado import Dado
+from Funcoes_de_arquivo import escrever_no_aquivo
 
 # chave api OpenWeather
 API_KEY = "94daa8d6048635a335d1c8ee1ff346f2"
@@ -96,6 +97,21 @@ def editar_arquivo_csv():
     btn_salvar.pack(pady=10)
 
 
+#serve para criar uma arquivo csv novo
+def criar_arquivo_csv():
+    caminho_arquivo = filedialog.asksaveasfilename(
+        title="Salvar Arquivo CSV",
+        defaultextension=".csv",
+        filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
+    )
+    if caminho_arquivo:
+        # Cria um arquivo vazio sem cabeçalhos
+        with open(caminho_arquivo, mode='w') as file:
+            pass  # Apenas cria o arquivo sem escrever nada
+        messagebox.showinfo("Sucesso", "Arquivo CSV vazio criado com sucesso!")
+        return caminho_arquivo
+    return None
+
 # carregamento de arquivo csv
 def carregar_dados_csv(caminho_arquivo):
     try:
@@ -180,6 +196,7 @@ def selecionar_arquivo():
         if temperaturas is not None:
             estatisticas = calcular_estatisticas(temperaturas)
             exibir_estatisticas(estatisticas)
+            criar_grafico(dados, temperaturas)
             btn_grafico["state"] = NORMAL
         else:
             temperaturas = None
@@ -210,7 +227,7 @@ def criar_interface():
 
     janela = Tk()
     janela.title("Análise de Temperaturas")
-    janela.geometry("400x550")
+    janela.geometry("400x500")
 
     # Botão para criar novo arquivo CSV
     btn_criar = Button(janela, text="Criar Novo Arquivo CSV", command=criar_arquivo_csv)
@@ -229,8 +246,8 @@ def criar_interface():
     lbl_estatisticas = Label(janela, textvariable=estatisticas_texto, justify=LEFT, font=("Arial", 12))
     lbl_estatisticas.pack(pady=10)
 
-    # Botão para exibir gráficos
-    btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(temperaturas), state=DISABLED)
+    # botao graficos
+    btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(dados, temperaturas), state=DISABLED)
     btn_grafico.pack(pady=10)
 
     # Previsão do tempo
