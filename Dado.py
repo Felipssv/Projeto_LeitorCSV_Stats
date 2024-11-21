@@ -2,13 +2,14 @@ from math import remainder
 from functools import total_ordering
 from typing import Self
 
+
 @total_ordering
 class Dado:
     bissexto = False
     horas = None
     minutos = None
 
-    #OBSERVAÇÃO: "horas" e "minutos" devem ser strings!
+    # OBSERVAÇÃO: "horas" e "minutos" devem ser strings!
     def __init__(self, temperatura, dia, mes, ano, horas, minutos):
         self.temperatura = temperatura
         self.dia = dia
@@ -26,12 +27,12 @@ class Dado:
         else:
             self.minutos = int(minutos)
 
-        if (remainder(int(ano), 4) == 0 and remainder(int(ano), 100) != 0) or (remainder(int(ano), 100) == 0 and remainder(int(ano), 400) == 0):
+        if (remainder(int(ano), 4) == 0 and remainder(int(ano), 100) != 0) or (
+                remainder(int(ano), 100) == 0 and remainder(int(ano), 400) == 0):
             self.bissexto = True
         else:
             self.bissexto = False
-    
+
     def __lt__(self, other: Self):
-        return((self.ano, self.mes, self.dia, self.horas, self.minutos) <
-               (other.ano, other.mes, other.dia, other.horas, other.minutos))
-      
+        return ((self.ano, self.mes, self.dia, self.horas, self.minutos) <
+                (other.ano, other.mes, other.dia, other.horas, other.minutos))
