@@ -9,7 +9,13 @@ from Dado import Dado
 from Funcoes_de_arquivo import escrever_no_aquivo
 
 # chave api OpenWeather
-API_KEY = "94daa8d6048635a335d1c8ee1ff346f2" 
+API_KEY = "94daa8d6048635a335d1c8ee1ff346f2"
+
+
+#inicializar variaveis
+dados = None
+temperaturas = None
+
 
 #serve para criar uma arquivo csv novo
 def criar_arquivo_csv():
@@ -112,7 +118,7 @@ def obter_previsao_tempo(cidade):
 
 
 def selecionar_arquivo():
-    global dados
+    global dados, temperaturas
     caminho_arquivo = filedialog.askopenfilename(
         title="Selecione o arquivo CSV",
         filetypes=(("Arquivos CSV", "*.csv"), ("Todos os arquivos", "*.*"))
@@ -123,18 +129,10 @@ def selecionar_arquivo():
             temperaturas = pegar_temperaturas(dados)
             estatisticas = calcular_estatisticas(temperaturas)
             exibir_estatisticas(estatisticas)
-            '''
-            Para ser honesto, eu acho melho já exibir o gráfico ao invés de pedir
-            para o usuário apertar um botão, sem falar que não consegui fazer o botão
-            funcionar, então por enquanto vamos só mostrar o gráfico assim que o
-            usuário escolher o arquivo 
-            '''
-            criar_grafico(dados,temperaturas)
-            btn_grafico["state"] = NORMAL
+            btn_grafico["state"] = NORMAL  # Habilita o botão "Exibir Gráfico"
         else:
             temperaturas = None
-            btn_grafico["state"] = DISABLED
-
+            btn_grafico["state"] = DISABLED  # Desabilita o botão se dados forem inválidos
 # exibir stats
 def exibir_estatisticas(estatisticas):
     estatisticas_texto.set(
@@ -154,9 +152,16 @@ def mostrar_previsao():
     else:
         messagebox.showwarning("Aviso", "Por favor, insira o nome de uma cidade.")
 
+#botao
+def criar_grafico_botao():
+    if dados is not None and temperaturas is not None:
+        criar_grafico(dados, temperaturas)
+    else:
+        messagebox.showwarning("Aviso", "Carregue os dados antes de tentar exibir o gráfico.")
+
 # interface
 def criar_interface():
-    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade, dados, temperaturas
+    global estatisticas_texto, btn_grafico, previsao_texto, entrada_cidade
 
     janela = Tk()
     janela.title("Análise de Temperaturas")
@@ -179,9 +184,8 @@ def criar_interface():
     lbl_estatisticas = Label(janela, textvariable=estatisticas_texto, justify=LEFT, font=("Arial", 12))
     lbl_estatisticas.pack(pady=10)
 
-    # botao graficos
-    # Eu não consegui fazer o botão funcionar
-    btn_grafico = Button(janela, text="Exibir Gráfico", command=lambda: criar_grafico(dados, temperaturas), state=DISABLED)
+    # botao graficos corrigido
+    btn_grafico = Button(janela, text="Exibir Gráfico", command=criar_grafico_botao, state="disabled")
     btn_grafico.pack(pady=10)
 
     # previsao do tempo
